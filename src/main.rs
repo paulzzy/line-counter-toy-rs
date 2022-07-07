@@ -1,16 +1,22 @@
-use std::env;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use clap::Parser;
+use std::path::PathBuf;
+
+#[derive(Parser, Debug)]
+#[clap(author, version, about)]
+struct Args {
+    /// Directory name
+    directory: PathBuf,
+
+    /// Show stats for each filename extension
+    #[clap(short = 'A')]
+    extensions: Vec<String>,
+}
 
 fn main() {
-    let input = env::args().nth(1).expect("no input");
+    let args = Args::parse();
 
-    let reader: Box<dyn BufRead> = match input.as_ref() {
-        "-" => Box::new(BufReader::new(io::stdin())),
-        _ => Box::new(BufReader::new(File::open(&input).expect("file not found"))),
+    let dir_entries = match args.directory.read_dir() {
+        Ok(entries) => entries,
+        Err(err) => panic!("{}", err),
     };
-
-    let count = reader.lines().count();
-
-    println!("{}", count);
 }
